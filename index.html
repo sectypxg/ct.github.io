@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Private Chat</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0d1428;
+  color: white;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: #192440;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 15px 45px #0005;
+}
+h1 { text-align: center; color: #67e8f9; }
+p { color: #b8c5dc; text-align: center; }
+input {
+  width: 100%;
+  padding: 14px;
+  margin: 9px 0;
+  border: 1px solid #465675;
+  border-radius: 10px;
+  background: #101a30;
+  color: white;
+  font-size: 16px;
+}
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #22c8dc;
+  color: #071626;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+button.secondary {
+  background: #344563;
+  color: white;
+}
+#status {
+  margin-top: 18px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Private Chat</h1>
+  <p>大切な人と、1対1でつながろう。</p>
+
+  <div id="loginArea">
+    <input id="email" type="email" placeholder="メールアドレス">
+    <input id="password" type="password"
+      placeholder="パスワード（6文字以上）">
+
+    <button id="register">新規登録</button>
+    <button id="login" class="secondary">ログイン</button>
+  </div>
+
+  <div id="userArea" class="hidden">
+    <p>ログイン中</p>
+    <p id="userEmail"></p>
+    <button id="logout" class="secondary">ログアウト</button>
+  </div>
+
+  <p id="status">ログインまたは新規登録してください。</p>
+</div>
+
+<script type="module">
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAiRLrBuQ73Esd59SUWPmvjCSfvOL2M-Pw",
+  authDomain: "ctse-642a6.firebaseapp.com",
+  databaseURL: "https://ctse-642a6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ctse-642a6",
+  storageBucket: "ctse-642a6.firebasestorage.app",
+  messagingSenderId: "991350907147",
+  appId: "1:991350907147:web:192e1f5585ff561319c20e"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const status = document.getElementById("status");
+
+document.getElementById("register").onclick = async () => {
+  try {
+    await createUserWithEmailAndPassword(
+      auth, email.value.trim(), password.value
+    );
+    status.textContent = "登録できました！";
+  } catch (error) {
+    status.textContent = "登録エラー: " + error.message;
+  }
+};
+
+document.getElementById("login").onclick = async () => {
+  try {
+    await signInWithEmailAndPassword(
+      auth, email.value.trim(), password.value
+    );
+    status.textContent = "ログインしました！";
+  } catch (error) {
+    status.textContent = "ログインエラー: " + error.message;
+  }
+};
+
+document.getElementById("logout").onclick = async () => {
+  try {
+    await signOut(auth);
+    status.textContent = "ログアウトしました。";
+  } catch (error) {
+    status.textContent = error.message;
+  }
+};
+
+onAuthStateChanged(auth, user => {
+  document.getElementById("loginArea")
+    .classList.toggle("hidden", !!user);
+
+  document.getElementById("userArea")
+    .classList.toggle("hidden", !user);
+
+  document.getElementById("userEmail").textContent =
+    user ? user.email : "";
+
+  if (user) status.textContent = "ログイン中です！";
+});
+</script>
+</body>
+</html>
