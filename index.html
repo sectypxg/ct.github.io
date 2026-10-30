@@ -138,6 +138,8 @@ let currentChat=null;
 let messageRef=null;
 let chatListRef=null;
 let inviteRef=null;
+let chatListSnapshot=null;
+let chatMetaWatchers={};
 
 function show(id,visible){
  $(id).classList.toggle("hidden",!visible);
