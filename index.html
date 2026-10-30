@@ -79,6 +79,15 @@ button.secondary {
   <div id="userArea" class="hidden">
     <p>ログイン中</p>
     <p id="userEmail"></p>
+
+    <h3>ニックネーム設定</h3>
+    <input id="nickname" type="text"
+      maxlength="20" placeholder="ニックネーム（20文字以内）">
+
+    <button id="saveNickname">ニックネームを保存</button>
+
+    <p id="nicknameStatus"></p>
+
     <button id="logout" class="secondary">ログアウト</button>
   </div>
 
@@ -97,6 +106,13 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 
+import {
+  getDatabase,
+  ref,
+  get,
+  set
+} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyAiRLrBuQ73Esd59SUWPmvjCSfvOL2M-Pw",
   authDomain: "ctse-642a6.firebaseapp.com",
@@ -109,11 +125,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getDatabase(app);
 
 const email = document.getElementById("email");
 const password = document.getElementById("password");
 const status = document.getElementById("status");
+const nickname = document.getElementById("nickname");
+const nicknameStatus = document.getElementById("nicknameStatus");
 
+// 新規登録
 document.getElementById("register").onclick = async () => {
   try {
     await createUserWithEmailAndPassword(
@@ -125,6 +145,7 @@ document.getElementById("register").onclick = async () => {
   }
 };
 
+// ログイン
 document.getElementById("login").onclick = async () => {
   try {
     await signInWithEmailAndPassword(
@@ -136,6 +157,35 @@ document.getElementById("login").onclick = async () => {
   }
 };
 
+// ニックネーム保存
+document.getElementById("saveNickname").onclick = async () => {
+  const user = auth.currentUser;
+  const name = nickname.value.trim();
+
+  if (!user) {
+    nicknameStatus.textContent = "ログインしてください。";
+    return;
+  }
+
+  if (name.length < 1 || name.length > 20) {
+    nicknameStatus.textContent =
+      "1〜20文字で入力してください。";
+    return;
+  }
+
+  try {
+    await set(ref(db, "users/" + user.uid), {
+      nickname: name
+    });
+
+    nicknameStatus.textContent = "保存しました！";
+  } catch (error) {
+    nicknameStatus.textContent =
+      "保存エラー: " + error.message;
+  }
+};
+
+// ログアウト
 document.getElementById("logout").onclick = async () => {
   try {
     await signOut(auth);
@@ -145,7 +195,8 @@ document.getElementById("logout").onclick = async () => {
   }
 };
 
-onAuthStateChanged(auth, user => {
+// ログイン状態の確認
+onAuthStateChanged(auth, async user => {
   document.getElementById("loginArea")
     .classList.toggle("hidden", !!user);
 
@@ -155,7 +206,25 @@ onAuthStateChanged(auth, user => {
   document.getElementById("userEmail").textContent =
     user ? user.email : "";
 
-  if (user) status.textContent = "ログイン中です！";
+  nickname.value = "";
+  nicknameStatus.textContent = "";
+
+  if (user) {
+    status.textContent = "ログイン中です！";
+
+    try {
+      const snapshot = await get(
+        ref(db, "users/" + user.uid)
+      );
+
+      if (snapshot.exists()) {
+        nickname.value = snapshot.val().nickname || "";
+      }
+    } catch (error) {
+      nicknameStatus.textContent =
+        "読み込みエラー: " + error.message;
+    }
+  }
 });
 </script>
 </body>
