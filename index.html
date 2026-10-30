@@ -41,6 +41,36 @@ button.small{width:auto;padding:8px 12px}
 
 <div id="appArea" class="hidden">
 
+<!-- ① トーク一覧 -->
+<section>
+<h2>トーク一覧</h2>
+<div id="chatList">まだトークはありません。</div>
+</section>
+
+<!-- ② 届いた申請・招待 -->
+<section>
+<h2>届いた申請・招待</h2>
+<div id="inviteList">読み込み中...</div>
+</section>
+
+<!-- ③ 1対1チャット申請 -->
+<section>
+<h2>1対1チャット申請</h2>
+<p class="muted">相手のUIDを入力して申請するよ。</p>
+<input id="friendUid" placeholder="相手のUID">
+<button id="sendFriend">申請を送る</button>
+<p id="friendStatus" class="muted"></p>
+</section>
+
+<!-- ④ グループ作成 -->
+<section>
+<h2>グループ作成</h2>
+<input id="groupName" maxlength="40" placeholder="グループ名">
+<button id="createGroup">グループを作成</button>
+<p id="groupStatus" class="muted"></p>
+</section>
+
+<!-- ⑤ プロフィール -->
 <section>
 <h2>プロフィール</h2>
 <p id="myUid" class="muted"></p>
@@ -50,31 +80,7 @@ button.small{width:auto;padding:8px 12px}
 <button id="logout" class="secondary">ログアウト</button>
 </section>
 
- <section>
-<h2>トーク一覧</h2>
-<div id="chatList">まだトークはありません。</div>
-</section>
-
-<section>
-<h2>1対1チャット申請</h2>
-<p class="muted">相手のUIDを入力して申請するよ。</p>
-<input id="friendUid" placeholder="相手のUID">
-<button id="sendFriend">申請を送る</button>
-<p id="friendStatus" class="muted"></p>
-</section>
-
-<section>
-<h2>届いた申請・招待</h2>
-<div id="inviteList">読み込み中...</div>
-</section>
-
-<section>
-<h2>グループ作成</h2>
-<input id="groupName" maxlength="40" placeholder="グループ名">
-<button id="createGroup">グループを作成</button>
-<p id="groupStatus" class="muted"></p>
-</section>
-
+<!-- ⑥ チャット画面 -->
 <section id="chatArea" class="hidden">
 <h2 id="chatTitle">トーク</h2>
 <p id="chatInfo" class="muted"></p>
