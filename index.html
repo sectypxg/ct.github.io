@@ -566,12 +566,12 @@ onAuthStateChanged(auth,async user=>{
 
  watchInvites();
 
- if(chatListRef)off(chatListRef);
- chatListRef=ref(db,"userChats/"+user.uid);
+if(chatListRef)off(chatListRef);
+chatListRef=ref(db,"userChats/"+user.uid);
 
- onValue(chatListRef,refreshChats,error=>{
-  $("status").textContent="トーク一覧エラー："+err(error);
- });
+onValue(chatListRef,refreshChats,error=>{
+ $("status").textContent="トーク一覧エラー："+err(error);
+});
 });
 </script>
 </body>
