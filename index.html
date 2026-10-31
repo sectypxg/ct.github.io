@@ -378,54 +378,15 @@ function watchInvites(){
 }
 
 // トーク一覧
-// トーク一覧（最新メッセージ順）
 async function refreshChats(snapshot){
- chatListSnapshot=snapshot;
- await updateChatList();
-}
-
-async function updateChatList(){
  const list=$("chatList");
  list.replaceChildren();
 
- if(!chatListSnapshot||!chatListSnapshot.exists()){
+ if(!snapshot.exists()){
   list.textContent="まだトークはありません。";
   return;
  }
 
- const chatIds=Object.keys(chatListSnapshot.val());
- const chats=[];
-
- for(const chatId of chatIds){
-  try{
-   const snap=await get(ref(db,"chats/"+chatId));
-   if(!snap.exists())continue;
-
-   const chat=snap.val();
-   const messages=chat.messages||{};
-   const latest=Object.values(messages)
-    .reduce((max,msg)=>Math.max(max,msg.timestamp||0),0);
-
-   chats.push({chatId,chat,latest});
-  }catch(e){
-   console.error(e);
-  }
- }
-
- chats.sort((a,b)=>b.latest-a.latest);
-
- for(const item of chats){
-  const button=document.createElement("button");
-  button.className="secondary";
-  button.textContent=
-   (item.chat.type==="group"?"グループ：":"1対1：")+
-   (item.chat.title||"トーク");
-
-  button.onclick=()=>openChat(item.chatId,item.chat);
-  list.append(button);
- }
-}
- 
  for(const chatId of Object.keys(snapshot.val())){
   try{
    const snap=await get(ref(db,"chats/"+chatId));
@@ -445,7 +406,6 @@ async function updateChatList(){
   }
  }
 }
-
 // チャットを開く
 function openChat(chatId,chat){
  currentChat=chatId;
