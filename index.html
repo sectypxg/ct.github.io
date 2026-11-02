@@ -337,24 +337,21 @@ function watchInvites(){
    accept.className="small";
    accept.textContent="承認";
 
-accept.onclick=async()=>{
- try{
-   $("status").textContent="承認処理中...";
+   step="③ 申請削除";
 
-   if(invite.type!=="direct"&&invite.type!=="group"){
-    throw new Error("申請の種類が不正です。");
-   }
-
-   await set(
-    ref(db,"chats/"+chatId+"/members/"+currentUser.uid),
-    true
+   await remove(
+    ref(db,"invites/"+currentUser.uid+"/"+chatId)
    );
 
-   await set(
-    ref(db,"userChats/"+currentUser.uid+"/"+chatId),
-    true
-   );
+   $("status").textContent="承認完了！";
 
+ }catch(e){
+  $("status").textContent=
+   step+"で失敗："+err(e);
+
+  console.error(e);
+ }
+};
    await remove(
     ref(db,"invites/"+currentUser.uid+"/"+chatId)
    );
