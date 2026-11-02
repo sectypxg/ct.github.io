@@ -339,33 +339,33 @@ function watchInvites(){
 
 accept.onclick=async()=>{
  try{
-  $("status").textContent="① 承認処理開始";
+   $("status").textContent="承認処理中...";
 
-  const chat=await get(ref(db,"chats/"+chatId));
-  $("status").textContent="② チャット情報を取得";
+   if(invite.type!=="direct"&&invite.type!=="group"){
+    throw new Error("申請の種類が不正です。");
+   }
 
-  if(!chat.exists())throw new Error("チャットが見つかりません。");
+   await set(
+    ref(db,"chats/"+chatId+"/members/"+currentUser.uid),
+    true
+   );
 
-  const data=chat.val();
+   await set(
+    ref(db,"userChats/"+currentUser.uid+"/"+chatId),
+    true
+   );
 
-  if(data.type==="direct"&&data.directRecipient!==currentUser.uid){
-   throw new Error("この申請は無効です。");
-  }
+   await remove(
+    ref(db,"invites/"+currentUser.uid+"/"+chatId)
+   );
 
-  await set(ref(db,"chats/"+chatId+"/members/"+currentUser.uid),true);
-  $("status").textContent="③ メンバー登録できた";
+   $("status").textContent="承認完了！";
 
-  await set(ref(db,"userChats/"+currentUser.uid+"/"+chatId),true);
-  $("status").textContent="④ トーク一覧に登録できた";
-
-  await remove(ref(db,"invites/"+currentUser.uid+"/"+chatId));
-  $("status").textContent="⑤ 承認完了！";
- }catch(e){
-  $("status").textContent="承認エラー："+err(e);
-  console.error(e);
+  }catch(e){
+   $("status").textContent="承認エラー："+err(e);
+   console.error(e);
  }
 };
-
    const reject=document.createElement("button");
    reject.className="small secondary";
    reject.textContent="拒否";
