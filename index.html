@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -40,20 +39,16 @@ button.small{width:auto;padding:8px 12px}
 </section>
 
 <div id="appArea" class="hidden">
-
-<!-- ① トーク一覧 -->
 <section>
 <h2>トーク一覧</h2>
 <div id="chatList">まだトークはありません。</div>
 </section>
 
-<!-- ② 届いた申請・招待 -->
 <section>
 <h2>届いた申請・招待</h2>
 <div id="inviteList">読み込み中...</div>
 </section>
 
-<!-- ③ 1対1チャット申請 -->
 <section>
 <h2>1対1チャット申請</h2>
 <p class="muted">相手のUIDを入力して申請するよ。</p>
@@ -62,7 +57,6 @@ button.small{width:auto;padding:8px 12px}
 <p id="friendStatus" class="muted"></p>
 </section>
 
-<!-- ④ グループ作成 -->
 <section>
 <h2>グループ作成</h2>
 <input id="groupName" maxlength="40" placeholder="グループ名">
@@ -70,7 +64,6 @@ button.small{width:auto;padding:8px 12px}
 <p id="groupStatus" class="muted"></p>
 </section>
 
-<!-- ⑤ プロフィール -->
 <section>
 <h2>プロフィール</h2>
 <p id="myUid" class="muted"></p>
@@ -80,11 +73,9 @@ button.small{width:auto;padding:8px 12px}
 <button id="logout" class="secondary">ログアウト</button>
 </section>
 
-<!-- ⑥ チャット画面 -->
 <section id="chatArea" class="hidden">
 <h2 id="chatTitle">トーク</h2>
 <p id="chatInfo" class="muted"></p>
-
 <div id="groupInviteArea" class="hidden">
 <h3>メンバー招待</h3>
 <div class="row">
@@ -92,7 +83,6 @@ button.small{width:auto;padding:8px 12px}
 <button id="sendGroupInvite">招待</button>
 </div>
 </div>
-
 <div id="messages"></div>
 <div class="row">
 <input id="messageInput" placeholder="メッセージを入力">
@@ -138,8 +128,6 @@ let currentChat=null;
 let messageRef=null;
 let chatListRef=null;
 let inviteRef=null;
-let chatListSnapshot=null;
-let chatMetaWatchers={};
 
 function show(id,visible){
  $(id).classList.toggle("hidden",!visible);
@@ -189,16 +177,14 @@ $("saveProfile").onclick=async()=>{
   return;
  }
  try{
-  await set(ref(db,"users/"+currentUser.uid),{
-   nickname:name
-  });
+  await set(ref(db,"users/"+currentUser.uid),{nickname:name});
   $("profileStatus").textContent="保存しました！";
  }catch(e){
   $("profileStatus").textContent="保存エラー："+err(e);
  }
 };
 
-// チャットの基本情報を作成
+// チャット作成
 async function createChat(type,title,recipient=null){
  const chatId=push(ref(db,"chats")).key;
  const base="chats/"+chatId;
@@ -214,7 +200,6 @@ async function createChat(type,title,recipient=null){
 
  await set(ref(db,base+"/members/"+currentUser.uid),true);
  await set(ref(db,"userChats/"+currentUser.uid+"/"+chatId),true);
-
  return chatId;
 }
 
@@ -229,16 +214,12 @@ $("sendFriend").onclick=async()=>{
 
  try{
   const targetUser=await get(ref(db,"users/"+target));
-
   if(!targetUser.exists()){
    $("friendStatus").textContent="ユーザーが見つからないよ。";
    return;
   }
 
-  const chatId=await createChat(
-   "direct","1対1チャット",target
-  );
-
+  const chatId=await createChat("direct","1対1チャット",target);
   await set(ref(db,"invites/"+target+"/"+chatId),{
    sender:currentUser.uid,
    type:"direct"
@@ -254,7 +235,6 @@ $("sendFriend").onclick=async()=>{
 // グループ作成
 $("createGroup").onclick=async()=>{
  const title=$("groupName").value.trim();
-
  if(!title||title.length>40){
   $("groupStatus").textContent="1〜40文字で入力してね。";
   return;
@@ -272,7 +252,6 @@ $("createGroup").onclick=async()=>{
 // グループ招待
 $("sendGroupInvite").onclick=async()=>{
  if(!currentChat)return;
-
  const target=$("groupInviteUid").value.trim();
 
  if(!target||target===currentUser.uid){
@@ -282,7 +261,6 @@ $("sendGroupInvite").onclick=async()=>{
 
  try{
   const chat=await get(ref(db,"chats/"+currentChat));
-
   if(!chat.exists()||chat.val().owner!==currentUser.uid||
      chat.val().type!=="group"){
    $("messageStatus").textContent="招待できません。";
@@ -290,7 +268,6 @@ $("sendGroupInvite").onclick=async()=>{
   }
 
   const user=await get(ref(db,"users/"+target));
-
   if(!user.exists()){
    $("messageStatus").textContent="ユーザーが見つからないよ。";
    return;
@@ -311,7 +288,6 @@ $("sendGroupInvite").onclick=async()=>{
 // 招待一覧
 function watchInvites(){
  if(inviteRef)off(inviteRef);
-
  inviteRef=ref(db,"invites/"+currentUser.uid);
 
  onValue(inviteRef,snapshot=>{
@@ -337,36 +313,31 @@ function watchInvites(){
    accept.className="small";
    accept.textContent="承認";
 
-   step="③ 申請削除";
+   accept.onclick=async()=>{
+    let step="① メンバー登録";
+    try{
+     accept.disabled=true;
+     $("status").textContent="承認処理中...";
+     await set(ref(db,"chats/"+chatId+"/members/"+currentUser.uid),true);
 
-   await remove(
-    ref(db,"invites/"+currentUser.uid+"/"+chatId)
-   );
+     step="② トーク一覧への登録";
+     await set(ref(db,"userChats/"+currentUser.uid+"/"+chatId),true);
 
-   $("status").textContent="承認完了！";
+     step="③ 申請の削除";
+     await remove(ref(db,"invites/"+currentUser.uid+"/"+chatId));
 
- }catch(e){
-  $("status").textContent=
-   step+"で失敗："+err(e);
+     $("status").textContent="承認完了！";
+    }catch(e){
+     $("status").textContent=step+"で失敗："+err(e);
+     console.error(e);
+    }finally{
+     accept.disabled=false;
+    }
+   };
 
-  console.error(e);
- }
-};
-   await remove(
-    ref(db,"invites/"+currentUser.uid+"/"+chatId)
-   );
-
-   $("status").textContent="承認完了！";
-
-  }catch(e){
-   $("status").textContent="承認エラー："+err(e);
-   console.error(e);
- }
-};
    const reject=document.createElement("button");
    reject.className="small secondary";
    reject.textContent="拒否";
-
    reject.onclick=async()=>{
     try{
      await remove(ref(db,"invites/"+currentUser.uid+"/"+chatId));
@@ -378,6 +349,8 @@ function watchInvites(){
    box.append(accept,reject);
    list.append(box);
   }
+ },error=>{
+  $("status").textContent="申請一覧エラー："+err(error);
  });
 }
 
@@ -400,9 +373,7 @@ async function refreshChats(snapshot){
    const button=document.createElement("button");
    button.className="secondary";
    button.textContent=
-    (chat.type==="group"?"グループ：":"1対1：")+
-    (chat.title||"トーク");
-
+    (chat.type==="group"?"グループ：":"1対1：")+(chat.title||"トーク");
    button.onclick=()=>openChat(chatId,chat);
    list.append(button);
   }catch(e){
@@ -410,22 +381,18 @@ async function refreshChats(snapshot){
   }
  }
 }
+
 // チャットを開く
 function openChat(chatId,chat){
  currentChat=chatId;
-
  show("chatArea",true);
  $("chatTitle").textContent=chat.title||"トーク";
  $("chatInfo").textContent="チャットID："+chatId;
  $("messageStatus").textContent="";
 
- show(
-  "groupInviteArea",
-  chat.type==="group"&&chat.owner===currentUser.uid
- );
+ show("groupInviteArea",chat.type==="group"&&chat.owner===currentUser.uid);
 
  if(messageRef)off(messageRef);
-
  messageRef=ref(db,"chats/"+chatId+"/messages");
 
  onValue(messageRef,snapshot=>{
@@ -443,21 +410,18 @@ function openChat(chatId,chat){
 
    const sender=document.createElement("div");
    sender.className="muted";
-   sender.textContent=
-    msg.sender===currentUser.uid?"自分":"UID："+msg.sender;
+   sender.textContent=msg.sender===currentUser.uid?"自分":"UID："+msg.sender;
 
    const content=document.createElement("div");
    content.textContent=msg.text;
 
    const time=document.createElement("div");
    time.className="muted";
-   time.textContent=
-    new Date(msg.timestamp).toLocaleString("ja-JP");
+   time.textContent=new Date(msg.timestamp).toLocaleString("ja-JP");
 
    item.append(sender,content,time);
    area.append(item);
   }
-
   area.scrollTop=area.scrollHeight;
  },error=>{
   $("messageStatus").textContent="読み込みエラー："+err(error);
@@ -467,7 +431,6 @@ function openChat(chatId,chat){
 // メッセージ送信
 async function sendMessage(){
  const text=$("messageInput").value.trim();
-
  if(!currentChat||!text)return;
 
  if(text.length>2000){
@@ -481,7 +444,6 @@ async function sendMessage(){
    text,
    timestamp:Date.now()
   });
-
   $("messageInput").value="";
   $("messageStatus").textContent="";
  }catch(e){
@@ -522,20 +484,18 @@ onAuthStateChanged(auth,async user=>{
 
  try{
   const profile=await get(ref(db,"users/"+user.uid));
-  $("nickname").value=
-   profile.exists()?profile.val().nickname||"":"";
+  $("nickname").value=profile.exists()?profile.val().nickname||"":"";
  }catch(e){
   $("profileStatus").textContent="読み込みエラー："+err(e);
  }
 
  watchInvites();
 
-if(chatListRef)off(chatListRef);
-chatListRef=ref(db,"userChats/"+user.uid);
-
-onValue(chatListRef,refreshChats,error=>{
- $("status").textContent="トーク一覧エラー："+err(error);
-});
+ if(chatListRef)off(chatListRef);
+ chatListRef=ref(db,"userChats/"+user.uid);
+ onValue(chatListRef,refreshChats,error=>{
+  $("status").textContent="トーク一覧エラー："+err(error);
+ });
 });
 </script>
 </body>
