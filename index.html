@@ -338,27 +338,28 @@ function watchInvites(){
    accept.textContent="承認";
 
    accept.onclick=async()=>{
-    alert("承認ボタンは反応してる");
-    try{
-     const chat=await get(ref(db,"chats/"+chatId));
+ try{
+  $("status").textContent="承認処理中...";
 
-     if(!chat.exists())throw new Error("チャットが見つかりません。");
+  const chat=await get(ref(db,"chats/"+chatId));
+  if(!chat.exists())throw new Error("チャットが見つかりません。");
 
-     const data=chat.val();
+  const data=chat.val();
 
-     if(data.type==="direct"&&data.directRecipient!==currentUser.uid){
-      throw new Error("この招待は無効です。");
-     }
+  if(data.type==="direct"&&data.directRecipient!==currentUser.uid){
+   throw new Error("この申請は無効です。");
+  }
 
-     await set(ref(db,"chats/"+chatId+"/members/"+currentUser.uid),true);
-     await set(ref(db,"userChats/"+currentUser.uid+"/"+chatId),true);
-     await remove(ref(db,"invites/"+currentUser.uid+"/"+chatId));
+  await set(ref(db,"chats/"+chatId+"/members/"+currentUser.uid),true);
+  await set(ref(db,"userChats/"+currentUser.uid+"/"+chatId),true);
+  await remove(ref(db,"invites/"+currentUser.uid+"/"+chatId));
 
-     $("status").textContent="招待を承認しました！";
-    }catch(e){
-     $("status").textContent="承認エラー："+err(e);
-    }
-   };
+  $("status").textContent="招待を承認しました！";
+ }catch(e){
+  $("status").textContent="承認エラー："+err(e);
+  console.error(e);
+ }
+};
 
    const reject=document.createElement("button");
    reject.className="small secondary";
