@@ -338,6 +338,7 @@ function watchInvites(){
    accept.textContent="承認";
 
    accept.onclick=async()=>{
+    alert("承認ボタンは反応してる");
     try{
      const chat=await get(ref(db,"chats/"+chatId));
 
